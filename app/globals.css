@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * SafeBus — Nókis school transport
+ * Ground: predawn navy (the morning run starts before sunrise).
+ * One bold colour: safety yellow, reserved for the bus and primary actions.
+ * Statuses ride a separate semantic ramp so yellow never means "status".
+ * ------------------------------------------------------------------ */
+
+@theme {
+  --color-ink: #0c1524;
+  --color-ink-2: #111d30;
+  --color-ink-3: #182842;
+  --color-line: #22344e;
+  --color-line-soft: #1a2940;
+
+  --color-chalk: #e9eef6;
+  --color-mute: #8396b0;
+  --color-faint: #5b6d87;
+
+  --color-hiviz: #ffc40c;
+  --color-hiviz-dim: #8a6b09;
+
+  --color-board: #3ddc97;
+  --color-school: #4cc9f0;
+  --color-alert: #ff4d5e;
+  --color-skip: #64748b;
+  --color-home: #c4b5fd;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-sc), var(--font-barlow), sans-serif;
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-chalk);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* Numbers that change in place — ETA, counters — must not wobble. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Destination-blind lettering: the one place caps are a quotation, not a label. */
+.blind {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* ---- Focus: visible everywhere, never removed ---------------------- */
+:where(a, button, [role="button"], input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-hiviz);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- Leaflet, restyled to sit inside the dark UI ------------------- */
+.leaflet-container {
+  background: #0a1220;
+  font-family: var(--font-sans);
+}
+
+/* OSM ships light tiles; this pushes them to a night map that matches the app. */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(185deg) brightness(0.92) contrast(0.88)
+    saturate(0.55);
+}
+
+.leaflet-control-attribution {
+  background: rgba(12, 21, 36, 0.82) !important;
+  color: var(--color-faint) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-mute) !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--color-ink-2) !important;
+  color: var(--color-chalk) !important;
+  border-color: var(--color-line) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--color-ink-3) !important;
+}
+
+/* ---- Markers ------------------------------------------------------- */
+.bus-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.bus-marker__ring {
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  border: 2px solid var(--color-hiviz);
+  animation: sweep 2.4s ease-out infinite;
+}
+
+.bus-marker__body {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--color-hiviz);
+  color: #10141c;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 3px rgba(12, 21, 36, 0.9);
+}
+
+.pin {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: #0b1220;
+  box-shadow: 0 0 0 3px rgba(12, 21, 36, 0.9);
+}
+
+@keyframes sweep {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* ---- Toasts -------------------------------------------------------- */
+@keyframes toast-in {
+  from {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast-in {
+  animation: toast-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The bus token sliding down the route spine — the one ambient motion. */
+.spine-token {
+  transition:
+    top 900ms cubic-bezier(0.4, 0, 0.2, 1),
+    left 900ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
