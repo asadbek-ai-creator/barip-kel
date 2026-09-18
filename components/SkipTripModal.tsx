@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { AbsenceReason } from '@/types';
-import { ABSENCE_REASONS } from '@/lib/status';
+import { firstName } from '@/lib/i18n';
+import { useI18n } from '@/lib/i18n/context';
 
 const REASONS: AbsenceReason[] = ['sick', 'parents_driving', 'vacation'];
 
@@ -18,6 +19,7 @@ export function SkipTripModal({
   onClose: () => void;
   onConfirm: (reason: AbsenceReason) => void;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState<AbsenceReason>('sick');
   const panel = useRef<HTMLDivElement>(null);
 
@@ -39,7 +41,7 @@ export function SkipTripModal({
     <div className="fixed inset-0 z-[1500] flex items-end justify-center sm:items-center">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={t('common.close')}
         onClick={onClose}
         className="absolute inset-0 bg-ink/80 backdrop-blur-[2px]"
       />
@@ -54,16 +56,14 @@ export function SkipTripModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="skip-title" className="font-display text-[20px] leading-7 font-semibold">
-              Skip the bus today
+              {t('skip.title')}
             </h2>
-            <p className="text-[13px] leading-5 text-mute">
-              Búgin barmaydı — the driver sees this straight away.
-            </p>
+            <p className="text-[13px] leading-5 text-mute">{t('skip.subtitle')}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close')}
             className="-m-1 rounded p-1 text-faint transition-colors hover:text-chalk"
           >
             <X className="size-5" aria-hidden />
@@ -72,7 +72,7 @@ export function SkipTripModal({
 
         <fieldset className="mt-4">
           <legend className="text-[13px] text-mute">
-            Why is {studentName.split(' ')[0]} not riding?
+            {t('skip.legend', { name: firstName(studentName) })}
           </legend>
           <div className="mt-2 space-y-2">
             {REASONS.map((r) => (
@@ -92,7 +92,7 @@ export function SkipTripModal({
                   onChange={() => setReason(r)}
                   className="size-4 accent-[var(--color-hiviz)]"
                 />
-                {ABSENCE_REASONS[r]}
+                {t(`absence.${r}`)}
               </label>
             ))}
           </div>
@@ -104,14 +104,14 @@ export function SkipTripModal({
             onClick={onClose}
             className="h-12 flex-1 rounded-sm border border-line text-[15px] font-semibold text-mute transition-colors hover:text-chalk"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
             onClick={() => onConfirm(reason)}
             className="h-12 flex-1 rounded-sm bg-hiviz text-[15px] font-semibold text-ink transition-colors hover:bg-hiviz/90"
           >
-            Tell the driver
+            {t('skip.confirm')}
           </button>
         </div>
       </div>

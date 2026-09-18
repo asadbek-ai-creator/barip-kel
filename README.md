@@ -1,7 +1,8 @@
 # SafeBus
 
 A high-fidelity, mobile-first prototype of a school bus tracking and child-safety app,
-set at School #1 in Nókis (Nukus), Karakalpakstan.
+set at School #1 in Nókis (Nukus), Karakalpakstan. The interface is in **Russian and
+English**, switchable from any screen.
 
 Three screens share one live state with **no backend at all** — open them in separate
 browser windows and they stay in step.
@@ -52,12 +53,40 @@ the transport for browsers without `BroadcastChannel`.
 
 ```
 app/          the four screens
-components/   map, student card, toasts, skip-trip modal, avatars
+components/   map, student card, toasts, skip-trip modal, avatars, language switcher
 hooks/        useBusSync — the cross-tab state hook
 lib/          sync engine, mock data, geo maths, derived route state
+lib/i18n/     the two dictionaries, the translator, and the React context
 types/        shared domain types
 public/       generated student avatars
 ```
+
+## Language
+
+Russian is the default; the **RU / EN** control in each screen's header switches, and the
+choice is remembered in `localStorage` and picked up by the other open tabs.
+
+Everything lives in `lib/i18n`:
+
+- `en.ts` is the source of truth. `TranslationKey` is derived from its keys, so `t()`
+  only accepts a key that exists, and `ru.ts` is typed as `Dictionary` — a missing
+  translation fails the build instead of showing a blank label.
+- `t('key', { name })` fills `{named}` placeholders. `tn('count.stops', n)` picks the
+  plural form via `Intl.PluralRules`, which Russian needs for its one/few/many split
+  («1 остановка», «2 остановки», «5 остановок»).
+- Children, parents and the driver live in the synced state rather than in the copy, so
+  `names.ts` maps their **record id** to a Cyrillic form. The state itself never changes
+  shape per language, which is what keeps the cross-tab sync language-agnostic.
+- Route stops carry a stable `id` (`stop1` … `school`); screens render
+  `t('waypoint.<id>.name')` and treat the Latin name in `mockData.ts` as a fallback.
+
+Two things the Russian copy deliberately avoids, because they cannot be done by
+interpolation: past-tense verbs that agree with a child's gender, and names in an oblique
+case. Every sentence carrying a name is phrased so the nominative is correct.
+
+Barlow has no Cyrillic, so Roboto and Roboto Condensed sit directly behind it in the font
+stack. The browser resolves fonts per glyph, so Latin still renders in Barlow and only
+Cyrillic falls through.
 
 ## Notes
 

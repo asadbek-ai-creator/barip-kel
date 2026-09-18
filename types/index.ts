@@ -38,7 +38,12 @@ export type TripMode =
   | 'afternoon_to_home'
   | 'completed';
 
+/** Stable id of a route waypoint, and its key into the translation files. */
+export type WaypointId = 'stop1' | 'stop2' | 'stop3' | 'stop4' | 'stop5' | 'school';
+
 export interface Waypoint {
+  id: WaypointId;
+  /** Latin fallback, shown when a locale has no translation for this stop. */
   name: string;
   address: string;
   coords: [number, number];

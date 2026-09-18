@@ -13,29 +13,21 @@ import {
   safeArrivalRate,
   studentsAtStop,
 } from '@/lib/route';
-import { STATUS_META, clockTime } from '@/lib/status';
+import { STATUS_META } from '@/lib/status';
 import { useBusSync } from '@/hooks/useBusSync';
 import { BusMap, type MapPin } from '@/components/BusMap';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Avatar } from '@/components/Avatar';
 import { stopColour } from '@/components/StudentCard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useI18n } from '@/lib/i18n/context';
 
-const FILTERS: Array<{ id: 'all' | StudentStatus; label: string }> = [
-  { id: 'all', label: 'Everyone' },
-  { id: 'picked_up', label: 'On bus' },
-  { id: 'at_school', label: 'At school' },
-  { id: 'absent_today', label: 'Absent' },
-];
-
-const TRIP_LABEL: Record<string, string> = {
-  idle: 'No run in progress',
-  morning_to_school: 'Morning run · Nókis → Mektep #1',
-  afternoon_to_home: 'Afternoon run · Mektep #1 → Nókis',
-  completed: 'Run finished',
-};
+/** Narrowed with `as const` so each id keys straight into `admin.filter.*`. */
+const FILTERS = ['all', 'picked_up', 'at_school', 'absent_today'] as const;
 
 export default function AdminPage() {
   const { state, hydrated, resetDemo } = useBusSync();
+  const { t, tn, name, time } = useI18n();
   const [filter, setFilter] = useState<'all' | StudentStatus>('all');
 
   const running = isTripRunning(state.tripMode);
@@ -51,15 +43,15 @@ export default function AdminPage() {
           id: `wp-${i}`,
           glyph: wp.kind === 'school' ? 'S' : String(i + 1),
           coords: wp.coords,
-          title: wp.name,
+          title: t(`waypoint.${wp.id}.name`),
           subtitle:
             wp.kind === 'school'
-              ? wp.address
-              : `${kids.length} ${kids.length === 1 ? 'child' : 'children'}`,
+              ? t('waypoint.school.address')
+              : tn('count.children', kids.length),
           color: wp.kind === 'school' ? STATUS_META.at_school.hex : stopColour(kids),
         };
       }),
-    [state.students],
+    [state.students, t, tn],
   );
 
   const route = useMemo(() => ROUTE_WAYPOINTS.map((w) => w.coords), []);
@@ -71,50 +63,61 @@ export default function AdminPage() {
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line pb-4">
         <Link
           href="/"
-          aria-label="Back to role switcher"
+          aria-label={t('common.back')}
           className="-ml-1 grid size-8 place-items-center rounded-sm text-faint transition-colors hover:text-chalk"
         >
           <ArrowLeft className="size-[18px]" aria-hidden />
         </Link>
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-[24px] leading-8 font-semibold">
-            School #1 dispatch
+            {t('admin.title')}
           </h1>
           <p className="text-[13px] leading-5 text-mute">
-            {TRIP_LABEL[state.tripMode]} · driver {DRIVER.name}
+            {t('admin.subtitle', {
+              trip: t(`trip.${state.tripMode}`),
+              name: name('driver', DRIVER.name),
+            })}
           </p>
         </div>
+        <LanguageSwitcher />
         <button
           type="button"
           onClick={resetDemo}
           className="flex h-10 items-center gap-2 rounded-sm border border-line px-3 text-[14px] font-semibold text-mute transition-colors hover:text-chalk"
         >
           <RotateCcw className="size-4" aria-hidden />
-          Reset demo
+          {t('admin.reset')}
         </button>
       </header>
 
       {/* One instrument band, divided — not four floating cards */}
       <dl className="grid grid-cols-2 divide-line border-b border-line sm:grid-cols-4 sm:divide-x">
-        <Kpi label="Buses on the road" value={running ? '1 / 1' : '0 / 1'} />
-        <Kpi label="Children enrolled" value={String(counts.total)} />
+        <Kpi label={t('admin.kpi.buses')} value={running ? '1 / 1' : '0 / 1'} />
+        <Kpi label={t('admin.kpi.enrolled')} value={String(counts.total)} />
         <Kpi
-          label="Safe arrivals this run"
+          label={t('admin.kpi.safeArrivals')}
           value={`${rate}%`}
           tone={rate === 100 ? 'text-board' : 'text-hiviz'}
         />
-        <Kpi label="Absent today" value={String(counts.absent)} tone="text-skip" />
+        <Kpi
+          label={t('admin.kpi.absent')}
+          value={String(counts.absent)}
+          tone="text-skip"
+        />
       </dl>
 
       {/* The route as one horizontal line across the whole fleet view */}
-      <section className="border-b border-line py-5" aria-label="Route progress">
+      <section
+        className="border-b border-line py-5"
+        aria-label={t('admin.routeProgress')}
+      >
         <ol className="flex items-start">
           {ROUTE_WAYPOINTS.map((wp, i) => {
             const passed = running && hasPassed(state.bus, state.tripMode, i);
             const isHere = running && heading === i;
             const last = i === SCHOOL_INDEX;
             return (
-              <li key={wp.name} className={`relative ${last ? 'shrink-0' : 'flex-1'}`}>
+              <li key={wp.id} className={`relative ${last ? 'shrink-0' : 'flex-1'}`}>
                 <div className="flex items-center">
                   <span
                     className={`relative z-10 grid size-8 shrink-0 place-items-center rounded-full border-2 bg-ink ${
@@ -147,7 +150,7 @@ export default function AdminPage() {
                   ) : null}
                 </div>
                 <p className="mt-2 max-w-[9rem] pr-3 text-[12px] leading-4 text-mute">
-                  {wp.name}
+                  {t(`waypoint.${wp.id}.name`)}
                 </p>
               </li>
             );
@@ -162,19 +165,19 @@ export default function AdminPage() {
 
         <section className="min-w-0">
           <div className="flex flex-wrap gap-1.5 pb-3">
-            {FILTERS.map((f) => (
+            {FILTERS.map((id) => (
               <button
-                key={f.id}
+                key={id}
                 type="button"
-                onClick={() => setFilter(f.id)}
-                aria-pressed={filter === f.id}
+                onClick={() => setFilter(id)}
+                aria-pressed={filter === id}
                 className={`h-8 rounded-xs border px-3 text-[13px] font-medium transition-colors ${
-                  filter === f.id
+                  filter === id
                     ? 'border-hiviz/60 bg-hiviz/10 text-hiviz'
                     : 'border-line text-mute hover:text-chalk'
                 }`}
               >
-                {f.label}
+                {t(`admin.filter.${id}`)}
               </button>
             ))}
           </div>
@@ -183,11 +186,21 @@ export default function AdminPage() {
             <table className="w-full min-w-[540px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-line text-[12px] text-faint">
-                  <th scope="col" className="px-3 py-2 font-medium">Child</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Status</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Stop</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Parent</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Updated</th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {t('admin.col.child')}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {t('admin.col.status')}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {t('admin.col.stop')}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {t('admin.col.parent')}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    {t('admin.col.updated')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -196,14 +209,18 @@ export default function AdminPage() {
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2.5">
                         <Avatar
-                          name={s.name}
+                          name={name(s.id, s.name)}
                           src={s.avatarUrl}
                           size={32}
                           dimmed={s.status === 'absent_today'}
                         />
                         <div className="min-w-0">
-                          <p className="truncate text-[14px] leading-5 font-medium">{s.name}</p>
-                          <p className="blind text-[11px] leading-4 text-mute">{s.grade}</p>
+                          <p className="truncate text-[14px] leading-5 font-medium">
+                            {name(s.id, s.name)}
+                          </p>
+                          <p className="blind text-[11px] leading-4 text-mute">
+                            {name(s.grade, s.grade)}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -211,10 +228,12 @@ export default function AdminPage() {
                       <StatusBadge status={s.status} />
                     </td>
                     <td className="px-3 py-2 text-[13px] leading-5 text-mute">
-                      {ROUTE_WAYPOINTS[s.stopIndex].name}
+                      {t(`waypoint.${ROUTE_WAYPOINTS[s.stopIndex].id}.name`)}
                     </td>
                     <td className="px-3 py-2">
-                      <p className="text-[13px] leading-5">{s.parentName}</p>
+                      <p className="text-[13px] leading-5">
+                        {name(`parent.${s.id}`, s.parentName)}
+                      </p>
                       <a
                         href={`tel:${s.parentPhone}`}
                         className="tnum inline-flex items-center gap-1 text-[12px] leading-4 text-mute transition-colors hover:text-hiviz"
@@ -224,14 +243,14 @@ export default function AdminPage() {
                       </a>
                     </td>
                     <td className="tnum px-3 py-2 text-[13px] leading-5 text-faint">
-                      {(hydrated && clockTime(s.lastUpdated)) || '—'}
+                      {(hydrated && time(s.lastUpdated)) || t('common.none')}
                     </td>
                   </tr>
                 ))}
                 {rows.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-3 py-8 text-center text-[14px] text-faint">
-                      No children in this view yet.
+                      {t('admin.empty')}
                     </td>
                   </tr>
                 ) : null}

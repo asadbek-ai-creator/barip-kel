@@ -27,6 +27,9 @@ import {
 import { useBusSync } from '@/hooks/useBusSync';
 import { useToast } from '@/components/ToastProvider';
 import { StudentCard } from '@/components/StudentCard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { firstName } from '@/lib/i18n';
+import { useI18n } from '@/lib/i18n/context';
 
 const TICK_MS = 3000;
 const STEPS_PER_LEG = 4; // 4 ticks per leg, so a leg takes about 12 seconds
@@ -34,18 +37,19 @@ const CRUISE_KMH = 26;
 
 export default function DriverPage() {
   const toast = useToast();
+  const { t, name } = useI18n();
 
   const onRemote = useCallback(
     (event: SyncEvent) => {
       if (event.type === 'STUDENT_ABSENT_TOGGLE' && event.payload.absent) {
         toast({
-          title: 'Roster updated',
-          body: 'A parent marked their child absent for today.',
+          title: t('driver.toast.roster.title'),
+          body: t('driver.toast.roster.body'),
           tone: 'alert',
         });
       }
     },
-    [toast],
+    [toast, t],
   );
 
   const { state, hydrated, setStudentStatus, setTripMode, updateBusLocation } =
@@ -120,8 +124,11 @@ export default function DriverPage() {
   const startTrip = () => {
     setTripMode(direction === 'morning' ? 'morning_to_school' : 'afternoon_to_home');
     toast({
-      title: direction === 'morning' ? 'Morning run started' : 'Afternoon run started',
-      body: 'Parents can now follow Bus 04 live.',
+      title:
+        direction === 'morning'
+          ? t('driver.toast.morningStarted')
+          : t('driver.toast.afternoonStarted'),
+      body: t('driver.toast.started.body', { number: DRIVER.busNumber }),
       tone: 'info',
     });
   };
@@ -137,23 +144,28 @@ export default function DriverPage() {
         <div className="flex items-center gap-3 px-4 pt-3">
           <Link
             href="/"
-            aria-label="Back to role switcher"
+            aria-label={t('common.back')}
             className="-ml-1 grid size-8 place-items-center rounded-sm text-faint transition-colors hover:text-chalk"
           >
             <ArrowLeft className="size-[18px]" aria-hidden />
           </Link>
           <span className="blind rounded-xs bg-hiviz px-2 py-0.5 text-[15px] text-ink">
-            Bus {DRIVER.busNumber}
+            {t('common.bus', { number: DRIVER.busNumber })}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] leading-5 font-semibold">{DRIVER.name}</p>
+            <p className="truncate text-[14px] leading-5 font-semibold">
+              {name('driver', DRIVER.name)}
+            </p>
             <p className="tnum truncate text-[12px] leading-4 text-faint">{DRIVER.plate}</p>
           </div>
+          <LanguageSwitcher />
         </div>
 
         {/* Destination blind, as on the front of the bus */}
         <p className="blind px-4 pt-2 text-[19px] leading-7 text-hiviz">
-          {direction === 'morning' ? 'Nókis → Mektep #1' : 'Mektep #1 → Nókis'}
+          {direction === 'morning'
+            ? t('driver.blind.morning')
+            : t('driver.blind.afternoon')}
         </p>
 
         <div className="flex gap-1 px-4 pt-2 pb-3">
@@ -162,14 +174,14 @@ export default function DriverPage() {
             onClick={() => setDirection('morning')}
             disabled={running}
           >
-            Morning
+            {t('driver.direction.morning')}
           </SegButton>
           <SegButton
             active={direction === 'afternoon'}
             onClick={() => setDirection('afternoon')}
             disabled={running}
           >
-            Afternoon
+            {t('driver.direction.afternoon')}
           </SegButton>
         </div>
 
@@ -181,7 +193,7 @@ export default function DriverPage() {
               className="flex h-12 flex-1 items-center justify-center gap-2 rounded-sm border border-alert/40 bg-alert/10 text-[15px] font-semibold text-alert transition-colors hover:bg-alert/20"
             >
               <Square className="size-[18px]" aria-hidden />
-              End trip
+              {t('driver.endTrip')}
             </button>
           ) : (
             <button
@@ -190,7 +202,7 @@ export default function DriverPage() {
               className="flex h-12 flex-1 items-center justify-center gap-2 rounded-sm bg-hiviz text-[15px] font-semibold text-ink transition-colors hover:bg-hiviz/90"
             >
               <Flag className="size-[18px]" aria-hidden />
-              Start trip
+              {t('driver.startTrip')}
             </button>
           )}
 
@@ -210,7 +222,7 @@ export default function DriverPage() {
             ) : (
               <Play className="size-[18px]" aria-hidden />
             )}
-            {simulating ? 'Driving' : 'Simulate'}
+            {simulating ? t('driver.driving') : t('driver.simulate')}
           </button>
         </div>
       </header>
@@ -218,8 +230,8 @@ export default function DriverPage() {
       {!running ? (
         <p className="mx-4 mt-4 rounded-md border border-line bg-ink-2 p-3 text-[13px] leading-5 text-mute">
           {state.tripMode === 'completed'
-            ? 'Run finished. Switch direction and start the next trip when you are ready.'
-            : 'Start the trip to open the roster. Parents see the bus move the moment you do.'}
+            ? t('driver.hint.completed')
+            : t('driver.hint.idle')}
         </p>
       ) : null}
 
@@ -267,13 +279,17 @@ export default function DriverPage() {
 
               <div className="flex items-baseline justify-between gap-2 pt-1">
                 <h2 className="font-display text-[16px] leading-6 font-semibold">
-                  {wp.name}
+                  {t(`waypoint.${wp.id}.name`)}
                 </h2>
                 {isHere ? (
-                  <span className="blind shrink-0 text-[12px] text-hiviz">Next</span>
+                  <span className="blind shrink-0 text-[12px] text-hiviz">
+                    {t('driver.next')}
+                  </span>
                 ) : null}
               </div>
-              <p className="text-[13px] leading-5 text-faint">{wp.address}</p>
+              <p className="text-[13px] leading-5 text-faint">
+                {t(`waypoint.${wp.id}.address`)}
+              </p>
 
               {kids.length > 0 ? (
                 <div className="mt-2.5 space-y-2">
@@ -286,8 +302,10 @@ export default function DriverPage() {
                       onBoard={() => {
                         setStudentStatus(student.id, 'picked_up');
                         toast({
-                          title: `${student.name.split(' ')[0]} is on board`,
-                          body: 'The parent has been notified.',
+                          title: t('driver.toast.boarded.title', {
+                            name: firstName(name(student.id, student.name)),
+                          }),
+                          body: t('driver.toast.boarded.body'),
                           tone: 'board',
                         });
                       }}
@@ -304,7 +322,9 @@ export default function DriverPage() {
                 </div>
               ) : isSchool ? (
                 <p className="mt-2 text-[13px] leading-5 text-mute">
-                  End of the {forward ? 'morning' : 'afternoon'} route.
+                  {forward
+                    ? t('driver.endOfRoute.morning')
+                    : t('driver.endOfRoute.afternoon')}
                 </p>
               ) : null}
             </li>
@@ -314,10 +334,18 @@ export default function DriverPage() {
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-ink/95 backdrop-blur">
         <dl className="mx-auto grid max-w-md grid-cols-4 divide-x divide-line">
-          <Tally label="Total" value={counts.total} />
-          <Tally label="Boarded" value={counts.boarded} tone="text-board" />
-          <Tally label="Absent" value={counts.absent} tone="text-skip" />
-          <Tally label="Remaining" value={counts.remaining} tone="text-hiviz" />
+          <Tally label={t('driver.tally.total')} value={counts.total} />
+          <Tally
+            label={t('driver.tally.boarded')}
+            value={counts.boarded}
+            tone="text-board"
+          />
+          <Tally label={t('driver.tally.absent')} value={counts.absent} tone="text-skip" />
+          <Tally
+            label={t('driver.tally.remaining')}
+            value={counts.remaining}
+            tone="text-hiviz"
+          />
         </dl>
       </div>
     </main>

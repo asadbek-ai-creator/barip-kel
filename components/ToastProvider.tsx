@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Bus, CheckCircle2, School, TriangleAlert, X } from 'lucide-react';
 import { playChime, unlockAudio, type ChimeKind } from '@/lib/sound';
+import { useI18n } from '@/lib/i18n/context';
 
 export type ToastTone = 'board' | 'school' | 'alert' | 'info';
 
@@ -40,6 +41,7 @@ const TONE: Record<
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
 
@@ -75,26 +77,26 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         aria-atomic="false"
         className="pointer-events-none fixed inset-x-0 top-0 z-[2000] flex flex-col items-center gap-2 p-3"
       >
-        {toasts.map((t) => {
-          const { icon: Icon, accent } = TONE[t.tone];
+        {toasts.map((toast) => {
+          const { icon: Icon, accent } = TONE[toast.tone];
           return (
             <div
-              key={t.id}
+              key={toast.id}
               className="toast-in pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-md border border-line bg-ink-2/95 p-3 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.9)] backdrop-blur"
             >
               <Icon className={`mt-0.5 size-5 shrink-0 ${accent}`} aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="text-sm leading-snug font-semibold">{t.title}</p>
-                {t.body ? (
+                <p className="text-sm leading-snug font-semibold">{toast.title}</p>
+                {toast.body ? (
                   <p className="mt-0.5 text-[13px] leading-snug text-mute">
-                    {t.body}
+                    {toast.body}
                   </p>
                 ) : null}
               </div>
               <button
                 type="button"
-                onClick={() => dismiss(t.id)}
-                aria-label="Dismiss"
+                onClick={() => dismiss(toast.id)}
+                aria-label={t('common.dismiss')}
                 className="-m-1 rounded p-1 text-faint transition-colors hover:text-chalk"
               >
                 <X className="size-4" aria-hidden />

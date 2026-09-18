@@ -27,8 +27,11 @@
   --color-skip: #64748b;
   --color-home: #c4b5fd;
 
-  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-barlow-sc), var(--font-barlow), sans-serif;
+  /* Barlow first for Latin; the Cyrillic face catches the glyphs it lacks. */
+  --font-sans: var(--font-barlow), var(--font-cyrillic), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-display: var(--font-barlow-sc), var(--font-cyrillic-sc), var(--font-barlow),
+    var(--font-cyrillic), sans-serif;
 
   --radius-xs: 3px;
   --radius-sm: 5px;

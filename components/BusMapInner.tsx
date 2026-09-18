@@ -5,6 +5,8 @@ import L from 'leaflet';
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { BusLocation } from '@/types';
+import { DRIVER } from '@/lib/mockData';
+import { useI18n } from '@/lib/i18n/context';
 
 export interface MapPin {
   id: string;
@@ -82,6 +84,7 @@ export default function BusMapInner({
   follow = false,
   className = '',
 }: BusMapProps) {
+  const { t } = useI18n();
   const icon = useMemo(() => busIcon(bus.heading), [bus.heading]);
 
   return (
@@ -114,8 +117,10 @@ export default function BusMapInner({
 
       <Marker position={[bus.lat, bus.lng]} icon={icon} zIndexOffset={1000}>
         <Tooltip direction="top" offset={[0, -20]}>
-          <span className="font-semibold">Bus 04</span>
-          <span className="block opacity-70">{Math.round(bus.speed)} km/h</span>
+          <span className="font-semibold">{t('common.bus', { number: DRIVER.busNumber })}</span>
+          <span className="block opacity-70">
+            {t('map.speed', { speed: Math.round(bus.speed) })}
+          </span>
         </Tooltip>
       </Marker>
 

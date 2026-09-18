@@ -2,7 +2,10 @@
 
 import { CheckCircle2, LogOut, Phone, UserX } from 'lucide-react';
 import type { Student, TripMode } from '@/types';
-import { ABSENCE_REASONS, STATUS_META, clockTime } from '@/lib/status';
+import { ROUTE_WAYPOINTS } from '@/lib/mockData';
+import { STATUS_META } from '@/lib/status';
+import { firstName } from '@/lib/i18n';
+import { useI18n } from '@/lib/i18n/context';
 import { Avatar } from './Avatar';
 import { StatusBadge } from './StatusBadge';
 
@@ -15,6 +18,8 @@ interface Props {
 }
 
 export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }: Props) {
+  const { t, name, time } = useI18n();
+
   const absent = student.status === 'absent_today';
   const afternoon = tripMode === 'afternoon_to_home';
   const tripRunning = tripMode === 'morning_to_school' || tripMode === 'afternoon_to_home';
@@ -25,8 +30,11 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
     student.status === (afternoon ? 'at_school' : 'at_home');
 
   const canDropOff = !absent && tripRunning && student.status === 'picked_up';
-  const dropLabel = afternoon ? 'Dropped off (Tústi)' : 'At school (Mektepte)';
-  const stamp = hydrated ? clockTime(student.lastUpdated) : null;
+  const stamp = hydrated ? time(student.lastUpdated) : null;
+
+  const childName = name(student.id, student.name);
+  const parentName = name(`parent.${student.id}`, student.parentName);
+  const address = t(`waypoint.${ROUTE_WAYPOINTS[student.stopIndex].id}.address`);
 
   return (
     <article
@@ -35,7 +43,7 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
       }`}
     >
       <div className="flex gap-3 p-3">
-        <Avatar name={student.name} src={student.avatarUrl} dimmed={absent} />
+        <Avatar name={childName} src={student.avatarUrl} dimmed={absent} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
@@ -44,18 +52,22 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
                 absent ? 'text-faint' : 'text-chalk'
               }`}
             >
-              {student.name}
+              {childName}
             </h3>
-            <span className="blind shrink-0 text-[12px] text-hiviz">{student.grade}</span>
+            <span className="blind shrink-0 text-[12px] text-hiviz">
+              {name(student.grade, student.grade)}
+            </span>
           </div>
 
-          <p className="truncate text-[13px] leading-5 text-faint">{student.stopAddress}</p>
+          <p className="truncate text-[13px] leading-5 text-faint">{address}</p>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <StatusBadge status={student.status} />
             {stamp ? (
               <span className="tnum text-[12px] text-faint">
-                {student.status === 'picked_up' ? 'boarded' : 'updated'} {stamp}
+                {student.status === 'picked_up'
+                  ? t('card.stamp.boarded', { time: stamp })
+                  : t('card.stamp.updated', { time: stamp })}
               </span>
             ) : null}
           </div>
@@ -63,7 +75,7 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
 
         <a
           href={`tel:${student.parentPhone}`}
-          aria-label={`Call ${student.parentName}, ${student.name}'s parent`}
+          aria-label={t('card.callParent', { parent: parentName, child: childName })}
           className="grid size-11 shrink-0 place-items-center self-start rounded-sm border border-line text-mute transition-colors hover:border-hiviz/50 hover:text-hiviz"
         >
           <Phone className="size-[18px]" aria-hidden />
@@ -74,8 +86,12 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
         <p className="flex items-center gap-2 border-t border-line-soft px-3 py-2 text-[13px] leading-5 text-skip">
           <UserX className="size-4 shrink-0" aria-hidden />
           <span>
-            Parent notified: {student.name.split(' ')[0]} is absent
-            {student.absenceReason ? ` — ${ABSENCE_REASONS[student.absenceReason]}` : ''}
+            {student.absenceReason
+              ? t('card.absentWithReason', {
+                  name: firstName(childName),
+                  reason: t(`absence.${student.absenceReason}`),
+                })
+              : t('card.absent', { name: firstName(childName) })}
           </span>
         </p>
       ) : (
@@ -87,7 +103,7 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
             className="flex h-11 flex-1 items-center justify-center gap-2 rounded-sm bg-board/15 text-[14px] font-semibold text-board transition-colors enabled:hover:bg-board/25 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-faint"
           >
             <CheckCircle2 className="size-[18px]" aria-hidden />
-            Boarded (Mindi)
+            {t('card.board')}
           </button>
           <button
             type="button"
@@ -96,7 +112,7 @@ export function StudentCard({ student, tripMode, hydrated, onBoard, onDropOff }:
             className="flex h-11 flex-1 items-center justify-center gap-2 rounded-sm bg-school/15 text-[14px] font-semibold text-school transition-colors enabled:hover:bg-school/25 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-faint"
           >
             <LogOut className="size-[18px]" aria-hidden />
-            {dropLabel}
+            {afternoon ? t('card.drop.afternoon') : t('card.drop.morning')}
           </button>
         </div>
       )}

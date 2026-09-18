@@ -23,36 +23,42 @@ export const PARENT: { name: string; childIds: string[] } = {
  */
 export const ROUTE_WAYPOINTS: Waypoint[] = [
   {
+    id: 'stop1',
     name: 'Stop 1 — Dosnazarov',
     address: 'Dosnazarov kóshesi 12, Nókis',
     coords: [42.4521, 59.5978],
     kind: 'stop',
   },
   {
+    id: 'stop2',
     name: 'Stop 2 — Berdaq',
     address: 'Berdaq kóshesi 45, Nókis',
     coords: [42.4558, 59.6021],
     kind: 'stop',
   },
   {
+    id: 'stop3',
     name: 'Stop 3 — Qaraqalpaqstan',
     address: 'Qaraqalpaqstan prospekti 88, Nókis',
     coords: [42.4594, 59.6083],
     kind: 'stop',
   },
   {
+    id: 'stop4',
     name: 'Stop 4 — Ámiwdárya',
     address: 'Ámiwdárya kóshesi 7, Nókis',
     coords: [42.4641, 59.6142],
     kind: 'stop',
   },
   {
+    id: 'stop5',
     name: 'Stop 5 — Qala orayı',
     address: 'Ǵárezsizlik kóshesi 30, Nókis',
     coords: [42.4688, 59.619],
     kind: 'stop',
   },
   {
+    id: 'school',
     name: SCHOOL_NAME,
     address: 'Alla Yarov kóshesi 1, Nókis',
     coords: [42.4726, 59.6118],
