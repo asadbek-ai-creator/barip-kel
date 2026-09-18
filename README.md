@@ -1,4 +1,4 @@
-# SafeBus
+# barıp kel
 
 A high-fidelity, mobile-first prototype of a school bus tracking and child-safety app,
 set at School #1 in Nókis (Nukus), Karakalpakstan. The interface is in **Russian and

@@ -18,7 +18,7 @@ export const en = {
   'lang.ru.short': 'RU',
 
   // --- shared --------------------------------------------------------
-  'app.title': 'SafeBus — Nókis school transport',
+  'app.title': 'barıp kel — Nókis school transport',
   'common.bus': 'Bus {number}',
   'common.back': 'Back to role switcher',
   'common.close': 'Close',
