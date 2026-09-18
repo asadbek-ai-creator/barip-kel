@@ -20,7 +20,7 @@ export const ru: Dictionary = {
   'lang.ru.short': 'RU',
 
   // --- shared --------------------------------------------------------
-  'app.title': 'barıp kel — школьный транспорт Нукуса',
+  'app.title': 'Barıp kel — школьный транспорт Нукуса',
   'common.bus': 'Автобус {number}',
   'common.back': 'Назад к выбору роли',
   'common.close': 'Закрыть',
