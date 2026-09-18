@@ -26,7 +26,7 @@ export default function Home() {
         <LanguageSwitcher />
       </div>
       <h1 className="mt-1 font-display text-[44px] leading-[1.05] font-bold sm:text-[56px]">
-        barıp kel
+        Barıp kel
       </h1>
       <p className="mt-3 max-w-[54ch] text-[16px] leading-6 text-mute">
         {t('home.lede', {
